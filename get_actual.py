@@ -1,8 +1,5 @@
-import boto3
+def get_daily_avg_cost_support(ce, time_period, filter_exclusions):
 
-
-def get_daily_avg_cost_support(time_period, filter_exclusions):
-    ce = boto3.session.Session(profile_name='Master', region_name='us-east-1').client('ce')
     response = ce.get_cost_and_usage(
         TimePeriod=time_period,
         Granularity='MONTHLY',
@@ -15,8 +12,7 @@ def get_daily_avg_cost_support(time_period, filter_exclusions):
     return response['ResultsByTime'][0]['Total']['NetAmortizedCost']['Amount']
 
 
-def get_cost_explorer_data(time_period, filter_exclusions):
-    ce = boto3.session.Session(profile_name='Master', region_name='us-east-1').client('ce')
+def get_cost_explorer_data(ce, time_period, filter_exclusions):
     response = ce.get_cost_and_usage(
         TimePeriod=time_period,
         Granularity='MONTHLY',
@@ -26,6 +22,21 @@ def get_cost_explorer_data(time_period, filter_exclusions):
     daily_costs = {}
     for result in response['ResultsByTime']:
         daily_costs[result['TimePeriod']['Start']] = float(result['Total']['NetAmortizedCost']['Amount'])
+    total_cost = sum(daily_costs.values())
+
+    return total_cost
+
+
+def get_cost_explorer_data_unblended(ce, time_period, filter_exclusions):
+    response = ce.get_cost_and_usage(
+        TimePeriod=time_period,
+        Granularity='MONTHLY',
+        Metrics=['UnblendedCost'],
+        Filter=filter_exclusions
+    )
+    daily_costs = {}
+    for result in response['ResultsByTime']:
+        daily_costs[result['TimePeriod']['Start']] = float(result['Total']['UnblendedCost']['Amount'])
     total_cost = sum(daily_costs.values())
 
     return total_cost

@@ -1,8 +1,4 @@
-import boto3
-
-
-def get_forecast_data(time_period, filter_exclusions):
-    ce = boto3.session.Session(profile_name='Master', region_name='us-east-1').client('ce')
+def get_forecast_data(ce, time_period, filter_exclusions):
     metrics = 'NET_AMORTIZED_COST'
     granularity = 'MONTHLY'
     response = ce.get_cost_forecast(

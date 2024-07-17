@@ -64,9 +64,9 @@ def month_period(months_ago):
 def unix_time():
     gmt = timezone(timedelta(0))
     current_date_gmt = datetime.now(gmt).date()
-    start_of_month_gmt = datetime(current_date_gmt.year, current_date_gmt.month, 1, tzinfo=gmt)
+    start_of_month_gmt = datetime(current_date_gmt.year, current_date_gmt.month, 1, tzinfo=timezone.utc)
 #    end_of_prev_day_gmt = datetime.combine(current_date_gmt, time.min, tzinfo=gmt) - timedelta(days=1)
-    end_of_prev_day_gmt = datetime.combine(current_date_gmt, time.min, tzinfo=gmt) - timedelta(seconds=1)
+    end_of_prev_day_gmt = datetime.combine(current_date_gmt, time.min, tzinfo=timezone.utc) - timedelta(seconds=1)
     start_of_month_unix = int(start_of_month_gmt.timestamp())
     end_of_prev_day_unix = int(end_of_prev_day_gmt.timestamp())
     return start_of_month_unix, end_of_prev_day_unix
@@ -84,3 +84,73 @@ def unix_time():
 #     }
 #     return time_period
 
+
+def get_time_period_from_feb_first():
+    today = date.today()
+    feb_first = date(today.year, 2, 1)
+    end_of_january_next_year = date(today.year + 1, 1, 31)
+    days_passed = (today - feb_first).days
+    days_remaining = (end_of_january_next_year - today).days
+    time_period = {
+        'Start': feb_first.strftime('%Y-%m-%d'),
+        'End': today.strftime('%Y-%m-%d')
+    }
+    return time_period, days_passed, days_remaining
+
+
+def get_q_details():
+    date_now = datetime.now()
+    quarters = {
+        1: (2, 1, 4, 30),  # February 1st to April 30th
+        2: (5, 1, 7, 31),  # May 1st to July 31st
+        3: (8, 1, 10, 31),  # August 1st to October 31st
+        4: (11, 1, 1, 31)  # November 1st to January 31st
+    }
+
+    month = date_now.month
+    if 2 <= month <= 4:
+        quarter = 1
+    elif 5 <= month <= 7:
+        quarter = 2
+    elif 8 <= month <= 10:
+        quarter = 3
+    else:
+        quarter = 4
+
+    start_month, start_day, end_month, end_day = quarters[quarter]
+    if start_month > end_month:
+        end_date_year = date_now.year + 1  # End date is in the next year
+    else:
+        end_date_year = date_now.year
+
+    start_date = datetime(date_now.year, start_month, start_day)
+
+    end_date = datetime(end_date_year, end_month, end_day)
+    num_days_in_current_quarter = (end_date - start_date).days + 1
+    days_remaining_in_current_quarter = (end_date - date_now).days + 1
+
+    time_period = {
+        'Start': start_date.strftime('%Y-%m-%d'),
+        'End': date_now.strftime('%Y-%m-%d')
+    }
+    return time_period, num_days_in_current_quarter, days_remaining_in_current_quarter
+
+
+def get_mona_one_day_timestamps(day_ago):
+    target_date = datetime.now(timezone.utc) - timedelta(days=day_ago)
+    start_of_day = datetime(target_date.year, target_date.month, target_date.day, tzinfo=timezone.utc)
+    end_of_day = start_of_day + timedelta(days=1, seconds=-1)
+    start_of_day_unix = int(start_of_day.timestamp())
+    end_of_day_unix = int(end_of_day.timestamp())
+    return start_of_day_unix, end_of_day_unix
+
+
+def get_aws_one_day_timeperiod(days_ago):
+    target_date = datetime.now(timezone.utc) - timedelta(days=days_ago)
+    start_of_day = datetime(target_date.year, target_date.month, target_date.day, tzinfo=timezone.utc)
+    end_of_day = start_of_day + timedelta(days=1)
+    time_period = {
+        'Start': start_of_day.strftime('%Y-%m-%d'),
+        'End': end_of_day.strftime('%Y-%m-%d')
+    }
+    return time_period
